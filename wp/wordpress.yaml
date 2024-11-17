@@ -1,0 +1,74 @@
+# WordPress ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wp-configmap
+  namespace: wp
+  labels:
+    id: "19108294"
+    app: word
+    env: dev
+data:
+  WORDPRESS_DB_HOST: "maria.db.svc.cluster.local"
+  WORDPRESS_DB_USER: "wordpress"
+  WORDPRESS_DB_NAME: "wordpress"
+---
+# WordPress Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wp-secret
+  namespace: wp
+type: Opaque
+data:
+  WORDPRESS_DB_PASSWORD: d29yZHByZXNz  # 'wordpress' in base64
+---
+# WordPress Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wp-deploayment
+  namespace: wp
+  labels:
+    id: "19108294"
+    app: word
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: word
+  template:
+    metadata:
+      labels:
+        id: "19108294"
+        app: word
+        env: dev
+        version: "1.0.0"
+    spec:
+      containers:
+      - name: word
+        image: wordpress:latest
+        envFrom:
+          - configMapRef:
+              name: wp-configmap
+          - secretRef:
+              name: wp-secret
+        ports:
+        - containerPort: 80
+---
+# WordPress Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: word-svc
+  namespace: wp
+spec:
+  type: NodePort
+  selector:
+    id: "19108294"
+    app: word
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
